@@ -6,4 +6,17 @@
 <div>
   Welcome to Tiny Apps!
 </div>
+<% if (username === undefined) { %>
+
+<form action="/login" method="POST" style="margin:100px;">
+  <input id="username" type="text" name="username" placeholder="John" style="width: 100px">
+  <input type="submit" value="Sign in">
+  </form>
+<% } else { %>
+<form action="/logout" method="POST" style="margin:10px";>
+<p><%= username %> </p>
+  <input type="submit" value="logout">
+<% } %>
+</form>
+
 
