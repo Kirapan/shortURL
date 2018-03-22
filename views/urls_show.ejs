@@ -5,18 +5,15 @@
 
 <body>
 
-    <header>
-      <% include ./partials/_header %>
-    </header>
-
-
-
-    <div>
+  <header>
+    <% include ./partials/_header %>
+  </header>
+  <div>
     <h1>
       Short URL : <%= shortURL %>
     </h1>
   </div>
-    <div>
+  <div>
     <% if (user === undefined) { %>
       <p>Please login to view.</p>
     <% } else { %>
@@ -29,8 +26,6 @@
           <h4>Only the Short URL owner can update the URL.</h4>
       <% } %>
       <% } %>
-      </div>
-
-
+  </div>
 </body>
 </html>

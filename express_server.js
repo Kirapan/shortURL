@@ -1,20 +1,16 @@
 const express = require('express');
 const PORT = process.env.PORT || 8080;
-//const cookieParser = require('cookie-parser');
 const app = express();
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
+const bodyParser = require("body-parser");
 app.set("view engine", "ejs");
-//app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
   keys: ['TiNyUrLpRoJeCt'],
   maxAge: 24 * 60 * 60 * 1000
 }));
-
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
-
 const urlDatabase = {
   "db2xVn2": {
     original:"http://www.lighthouselabs.ca",
@@ -23,7 +19,6 @@ const urlDatabase = {
     original:"http://www.google.com",
     userID:"2"}
 };
-
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -31,7 +26,6 @@ const users = {
     password: "purple-monkey-dinosaur"
   }
 };
-
 const urlsForUser = (id) => {
   let list = {};
   for (let key in urlDatabase) {
@@ -57,20 +51,16 @@ app.get("/", (req,res) => {
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
-//main page, render urls_b2xVn2.ejs
+//main page, render urls_index.ejs
 app.get("/urls", (req, res) => {
   let title = "Your URLs";
   let templateVars = {
     title: title,
     urls: urlDatabase,
-    // username : req.cookies['username'],
     user: users[req.session.id],
     list: urlsForUser(req.session.id)
   };
-  //console.log(templateVars);
-  //console.log(urlsForUser(req.session.id));
   res.render("urls_index",templateVars);
-  // console.log(templateVars.username);
 });
 //hello page
 app.get('/hello', (req, res) => {
@@ -82,17 +72,17 @@ app.get('/urls/new', (req, res) => {
     user: users[req.session.id],
     loggedIn : req.session.email
   };
-    res.render('urls_new',userName);
+  res.render('urls_new',userName);
 });
 //URL generator
 function generateRandomString() {
    let short = "";
    let set = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQESTUVWXYZ0123456789";
-   for( let i=0; i < 6; i++ )
+   for( let i=0; i < 6; i++ ) {
     short += set.charAt(Math.floor(Math.random() * set.length));
-    return short;
+  }
+  return short;
 }
-//console.log(generateRandomString('www.example.com/sdfs/sdfsedsf/sdfs'));
 //new shortURL generator
 app.post("/urls", (req, res) => {
   //console.log(req.body);
@@ -122,9 +112,7 @@ app.get('/register', (req, res) => {
 //link to urls_registration to collect email and password
 app.post('/register', (req, res) => {
   for (let key in users) {
-    //console.log(users[keys]);
-    //console.log(users);
-   if (req.body.email === users[key].email) {
+    if (req.body.email === users[key].email) {
      res.status(400).send('Already registered!Please login.');
     }
   }
@@ -141,11 +129,6 @@ app.post('/register', (req, res) => {
     holder['email']= req.body.email;
     holder['password'] = hashedPassword;
     users[random] = holder;
-  // console.log(holder);
-  // console.log(users[random]['id']);
-    //console.log(req.body.email);
-    //console.log(req.cookies.email);
-    //console.log(req.cookies.password);
     res.redirect('/urls');
   }
 });
@@ -154,6 +137,7 @@ app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
+//link to update an existing long URL
 app.post('/urls/:id/update', (req, res) => {
   let urlShortID = req.params.id;
   res.redirect(`/urls/${urlShortID}`);
@@ -163,22 +147,18 @@ app.get("/urls/:id", (req, res) => {
   let shURL = {
     shortURL: req.params.id,
     UrlID: urlDatabase[req.params.id].userID,
-    //username: req.cookies.username,
     user: users[req.session.id]
   };
-  // console.log(req.params.id);
-  // console.log(users[req.cookies.id].id);
   res.render("urls_show", shURL);
 });
 //activated when update is submitted
 app.post('/urls/:id', (req, res) => {
-  urlDatabase[req.params.id]['original'] = req.body.newURL;
+  urlDatabase[req.params.id].original = req.body.newURL;
   res.redirect('/urls');
 });
-
+//Login page
 app.get('/login', (req, res) => {
   let login = {
-    //username: req.cookies.username,
     user: users[req.session.id]
   };
   if (!req.session.id) {
@@ -204,11 +184,7 @@ app.post('/login', (req, res) => {
   res.status(403).send('User not found. Please register!');
 });
 //link to _header.ejs to log out
-app.post('/logout', function (req, res) {
-  //res.clearCookie('username');
-  //res.clearCookie('id');
-  //res.clearCookie('email');
-  //res.clearCookie('password');
+app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
