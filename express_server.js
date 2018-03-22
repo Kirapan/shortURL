@@ -68,7 +68,7 @@ app.get('/hello', (req, res) => {
 });
 //link to urls_new to enter a new URL
 app.get('/urls/new', (req, res) => {
-  let userName= {
+  let userName = {
     user: users[req.session.id],
     loggedIn : req.session.email
   };
@@ -96,11 +96,9 @@ app.post("/urls", (req, res) => {
 //page to update a longURL
 app.get('/u/:shortURL', (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
-    res.status(404)
-   .send('Not found');
+    res.status(404).send('Not found');
   } else {
   let longURL = urlDatabase[req.params.shortURL].original;
-  //console.log(req.params);
   res.redirect(longURL);
   }
 });
@@ -144,12 +142,21 @@ app.post('/urls/:id/update', (req, res) => {
 });
 //page about a short URL and possible to update-> link to urls_show
 app.get("/urls/:id", (req, res) => {
-  let shURL = {
-    shortURL: req.params.id,
-    UrlID: urlDatabase[req.params.id].userID,
-    user: users[req.session.id]
-  };
-  res.render("urls_show", shURL);
+  if (!req.session.id) {
+    res.redirect("/login");
+  }
+  let databaseID = Object.keys(urlDatabase);
+  for(let i = 0; i < databaseID.length; i++){
+    if (req.params.id === databaseID[i]) {
+      let shURL = {
+        shortURL: req.params.id,
+        UrlID: urlDatabase[req.params.id],
+        user: users[req.session.id]
+      };
+        res.render("urls_show", shURL);
+      }
+    }
+    res.status(404).send('URL not found! Please try another one');
 });
 //activated when update is submitted
 app.post('/urls/:id', (req, res) => {

@@ -17,7 +17,7 @@
     <% if (user === undefined) { %>
       <p>Please login to view.</p>
     <% } else { %>
-        <% if (user.id === UrlID) { %>
+        <% if (user.id === UrlID.userID) { %>
           <form action="/urls/<%= shortURL %>" method="POST" style="margin:50px;">
           <input type="text" name="newURL" placeholder="http://" style="width: 300px">
           <input type="submit" value="Update">
