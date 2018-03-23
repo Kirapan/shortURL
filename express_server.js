@@ -4,6 +4,9 @@ const app = express();
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
+const methodOverride = require('method-override');
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -11,13 +14,18 @@ app.use(cookieSession({
   keys: ['TiNyUrLpRoJeCt'],
   maxAge: 24 * 60 * 60 * 1000
 }));
+app.use(methodOverride('_method'));
 const urlDatabase = {
   "db2xVn2": {
     original:"http://www.lighthouselabs.ca",
-    userID:"1"},
+    userID:"1",
+    visits: 2
+  },
   "9sm5xK": {
     original:"http://www.google.com",
-    userID:"2"}
+    userID:"2",
+    visits:4
+  }
 };
 const users = {
   "userRandomID": {
@@ -26,6 +34,7 @@ const users = {
     password: "purple-monkey-dinosaur"
   }
 };
+const counterData ={};
 const urlsForUser = (id) => {
   let list = {};
   for (let key in urlDatabase) {
@@ -58,7 +67,7 @@ app.get("/urls", (req, res) => {
     title: title,
     urls: urlDatabase,
     user: users[req.session.id],
-    list: urlsForUser(req.session.id)
+    list: urlsForUser(req.session.id),
   };
   res.render("urls_index",templateVars);
 });
@@ -88,13 +97,36 @@ app.post("/urls", (req, res) => {
   //console.log(req.body);
   let key = generateRandomString();
   let holder = {};
+  let trafficLog = {};
   holder['original'] = req.body.longURL;
   holder['userID'] = req.session.id;
+  holder['totalVisits'] = 0;
+  holder['uniqueVisits'] = 0;
+  holder['trafficLog'] = trafficLog;
   urlDatabase[key] = holder;
   res.redirect('/urls');
 });
 //page to update a longURL
 app.get('/u/:shortURL', (req, res) => {
+  let date = Date.now();
+  // console.log(urlDatabase[req.params.shortURL]);
+  urlDatabase[req.params.shortURL]['totalVisits'] += 1;
+  for (let key in urlDatabase[req.params.shortURL].trafficLog) {
+    if (urlDatabase[req.params.shortURL].trafficLog[key] === req.session.visitorID) {
+  urlDatabase[req.params.shortURL].trafficLog[date] = req.session.visitorID;
+    }
+  }
+  console.log(req.session.visitorID);
+  if (!req.session.visitorID) {
+  console.log(req.session.visitorID);
+  req.session.visitorID = generateRandomString();
+  console.log(req.session.visitorID);
+  urlDatabase[req.params.shortURL]['uniqueVisits'] += 1;
+  urlDatabase[req.params.shortURL].trafficLog[date] = req.session.visitorID;
+  }
+  console.log(urlDatabase[req.params.shortURL]);
+
+
   if (urlDatabase[req.params.shortURL] === undefined) {
     res.status(404).send('Not found');
   } else {
@@ -131,12 +163,12 @@ app.post('/register', (req, res) => {
   }
 });
 //link to urls_index to delete a existing URL
-app.post('/urls/:id/delete', (req, res) => {
+app.delete('/urls/:id', (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
 //link to update an existing long URL
-app.post('/urls/:id/update', (req, res) => {
+app.put('/urls/:id', (req, res) => {
   let urlShortID = req.params.id;
   res.redirect(`/urls/${urlShortID}`);
 });

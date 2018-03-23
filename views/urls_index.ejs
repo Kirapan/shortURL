@@ -15,10 +15,13 @@
           <ul>
       <% for (let key in list) { %>
           <li><%= key %> : <%= list[key] %>
-            <form method="POST" action=<%=`/urls/${key}/delete`%>>
+          <p>Total Visits: <%= urls[key].totalVisits %></p>
+          <p>Unique Visits: <%= urls[key].uniqueVisits %></p>
+          <p>Traffic Log: <%= JSON.stringify(urls[key].trafficLog) %></p>
+            <form method="POST" action="/urls/<%=key%>?_method=DELETE">
             <input type="submit" value="Delete">
             </form>
-            <form method="POST" action=<%=`/urls/${key}/update`%>>
+            <form method="POST" action="/urls/<%=key%>?_method=PUT">
             <input type="submit" value="Update">
             </form>
           <% } %>
